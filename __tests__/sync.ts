@@ -6,7 +6,7 @@
 // option.
 
 import { createStorage } from 'storage-facade';
-import { SessionStorageInterface } from '../src';
+import { SessionStorageInterface as TestedInterface } from '../src';
 
 beforeEach(() => {
   sessionStorage.clear();
@@ -26,7 +26,8 @@ const testsSetup = [
 testsSetup.forEach((setup) => {
   it(`Sync, ${setup.name}: read/write`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
+      useCache: setup.useCache,
       asyncMode: false,
       name: 'settings',
     });
@@ -35,9 +36,41 @@ testsSetup.forEach((setup) => {
     expect(storage.value).toEqual({ c: [40, 42] });
   });
 
+  it(`Sync, ${setup.name}: different names`, () => {
+    const storage = createStorage({
+      use: new TestedInterface(),
+      useCache: setup.useCache,
+      asyncMode: false,
+      name: 'settings',
+    });
+
+    storage.value = 10;
+
+    expect(storage.value).toEqual(10);
+
+    const storage2 = createStorage({
+      use: new TestedInterface(),
+      asyncMode: false,
+      name: 'settings2',
+    });
+
+    expect(storage.value).toEqual(10);
+    expect(storage2.value).toEqual(undefined);
+
+    storage2.value = 20;
+
+    expect(storage.value).toEqual(10);
+    expect(storage2.value).toEqual(20);
+
+    storage.clear();
+
+    expect(storage.value).toEqual(undefined);
+    expect(storage2.value).toEqual(20);
+  });
+
   it(`Sync, ${setup.name}: case-sensitive`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -53,7 +86,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: ref problem (need structuredClone)`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -71,7 +104,7 @@ testsSetup.forEach((setup) => {
 
     // Test new session, cache is empty
     const newStorage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -84,7 +117,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: addDefault`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -106,7 +139,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: getDefault`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -118,7 +151,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: setDefault`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -134,7 +167,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: clearDefault`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -149,7 +182,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: delete key`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -169,7 +202,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: clear storage`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -185,7 +218,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: size`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -199,7 +232,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: key`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
@@ -212,7 +245,7 @@ testsSetup.forEach((setup) => {
 
   it(`Sync, ${setup.name}: iter`, () => {
     const storage = createStorage({
-      use: new SessionStorageInterface(),
+      use: new TestedInterface(),
       useCache: setup.useCache,
       asyncMode: false,
     });
