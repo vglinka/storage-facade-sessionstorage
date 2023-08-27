@@ -10,8 +10,52 @@ the actual storage implementation.
 ## Installation
 
 ```sh
-npm install storage-facade@1 storage-facade-sessionstorage
+npm install storage-facade@3 storage-facade-sessionstorage
 ```
+
+# Data structure
+
+The following code 
+
+```TypeScript
+import { createStorage } from 'storage-facade';
+import { SessionStorageInterface } from 'storage-facade-sessionstorage';
+
+const storage1 = createStorage({
+  use: new SessionStorageInterface(),
+  name: 'storageOne', // Storage name
+  useCache: true,
+});
+
+const storage2 = createStorage({
+  use: new SessionStorageInterface(),
+  name: 'storageTwo', // Storage name
+  useCache: true,
+});
+
+try {
+  storage1.pen = { data: [40, 42] };
+  storage1.pineApple = 10;
+  
+  storage2.apple = [1, 2, 3];
+  storage2.pen = 'Uh!';
+} catch (e) {
+  console.error((e as Error).message);
+  // If you are not using TypeScript replace this line with
+  // console.error(e.message);
+}
+```
+
+will create such keys in sessionStorage:
+
+![sessionStorage](https://raw.githubusercontent.com/vglinka/storage-facade-sessionstorage/main/assets/sessionstorage.png)
+
+As you can see, each storage is separated from the other by a prefix,
+and each value is wrapped in an object `{ value: ... }`,
+allowing `null` values to be stored. For each storage, there is a variable
+that stores a list of keys and their order. Thus, one of the storages
+can be cleared without affecting the other storage, or other keys from other
+libraries also stored in sessionStorage.
 
 # Usage
 
@@ -29,10 +73,8 @@ The `key` and `size` methods can be used to create custom iterators.
 The default values are used if the value in the storage is `undefined`.
 Default values are not stored in the storage, but in the instance.
 
-- `.addDefault(obj: Record<string, unknown>)` - adds keys and values
-  from the passed object to the list of default values
-- `.setDefault(obj: Record<string, unknown>)` - replaces the list
-  of default values with the given object
+- `.addDefault(obj)` - adds keys and values from the passed object to the list of default values
+- `.setDefault(obj)` - replaces the list of default values with the given object
 - `.getDefault()` - returns an object containing default values
 - `.clearDefault()` - replaces a list of default values with an empty object
 
@@ -50,21 +92,42 @@ const storage = createStorage({
   // with the same `name` property at the same time
   useCache: true, // false by default
   name: 'settings', // Storage name, optional, default: 'storage'
-  asyncMode: false, // sessionStorage is synchronous storage 
 });
 
 // If an initialization error occurs,
 // it will be thrown on the first attempt to read/write
 try {
-  storage.value = { c: [40, 42] };
-  console.log(storage.value); // { c: [40, 42] }
-  
+  // Write value
+  storage.value = { data: [40, 42] };
+
+  // Read value
+  console.log(storage.value); // { data: [40, 42] }
+
+  // When writing, accesses to first-level keys are intercepted only,
+  // so if you need to make changes inside the object,
+  // you need to make changes and then assign it to the first level key.
+  // Get object
+  const updatedValue = storage.value as Record<string, unknown>;
+  // Make changes
+  updatedValue.data = [10, 45];
+  // Update storage
+  storage.value = updatedValue; // Ok
+
+  // Read value
+  console.log((storage.value as Record<string, unknown>).data); // [10, 45]
+
+  // OR
+  const value = storage.value as Record<string, unknown>;
+  console.log(value.data); // [10, 45]
+
+  // Delete value
   delete storage.value;
   console.log(storage.value); // undefined
-  
+
   storage.value = 30;
   console.log(storage.value); // 30
-  
+
+  // Clear storage
   storage.clear();
   console.log(storage.value); // undefined
 } catch (e) {
@@ -81,7 +144,6 @@ import { SessionStorageInterface } from 'storage-facade-sessionstorage';
 const storage = createStorage({
   use: new SessionStorageInterface(),
   useCache: true,
-  asyncMode: false,
 });
 
 try {
@@ -116,7 +178,6 @@ import { SessionStorageInterface } from 'storage-facade-sessionstorage';
 const storage = createStorage({
   use: new SessionStorageInterface(),
   useCache: true,
-  asyncMode: false,
 });
 
 try {
@@ -166,25 +227,35 @@ try {
 
 # Limitations
 
-## Use only first level keys
+## Use only first level keys when writing
 
-Only first-level keys (like `storage.a =`, but not `storage.a[0] =`
-or `storage.a.b =`) are in sync with the storage.
+When writing, accesses to first-level keys (like `storage.a =`,
+but not `storage.a[0] =` or `storage.a.b =`) are intercepted only,
+so if you need to make changes inside the object, you need to make changes
+and then assign it to the first level key.
 
 Assigning keys of the second or more levels will not give any effect.
 
 ```TypeScript
+  // Read
+  console.log((storage.value as Record<string, unknown>).data); // Ok
+
+  // Write
   // Don't do that
-  storage.value.user.data = 42; // no effect
+  storage.value.data = 42; // no effect
 ```
 
 Instead, use the following approach:
 
 ```TypeScript
+  // Read
+  console.log((storage.value as Record<string, unknown>).data); // Ok
+
+  // Write
   // Get object
-  const updatedValue = storage.value;
-  // Modify the inner content of an object
-  updatedValue.user.data = 42;
+  const updatedValue = storage.value as Record<string, unknown>;
+  // Make changes
+  updatedValue.data = 42;
   // Update storage
   storage.value = updatedValue; // Ок
 ```
@@ -192,7 +263,7 @@ Instead, use the following approach:
 ## If you are using caching
 
 1. Don't create more than one instance with the same `name` property at the same time.
-2. Values should be of any [structured-cloneable type](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types).
+2. Values should be of any [structured-cloneable type (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types).
 
 ## Don't use banned key names
 
@@ -209,7 +280,6 @@ import { SessionStorageInterface } from 'storage-facade-sessionstorage';
 const storage = createStorage({
   use: new SessionStorageInterface(),
   useCache: true,
-  asyncMode: false,
 });
 
 try {

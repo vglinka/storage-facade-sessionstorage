@@ -9,9 +9,11 @@ import {
   StorageInterface,
   type Setup,
   defaultStorageName,
+  Ok,
 } from 'storage-facade';
 
 export const defaultUseCache = false;
+export const defaultAsyncMode = false;
 
 // sessionStorage returns `null`, not `undefined` if no value is found.
 // For this reason, it is necessary to wrap values in order
@@ -33,6 +35,8 @@ export class SessionStorageInterface extends StorageInterface {
 
   useCache: boolean = defaultUseCache;
 
+  asyncMode: boolean = defaultAsyncMode;
+
   keysArrayCache: string[] = [];
 
   keyValueCache = new Map<string, unknown>();
@@ -40,24 +44,28 @@ export class SessionStorageInterface extends StorageInterface {
   getKeysArray(): string[] {
     const keysStr = window.sessionStorage.getItem(this.keysArrayName);
     if (keysStr === null) {
-      const msg =
-        `storage-facade: ${this.interfaceName}: ` +
-        `'${this.keysArrayName}' not found.`;
-      throw Error(msg);
+      const err = this.interfaceError(
+        `'${this.keysArrayName}' not found.`
+      );
+      throw err;
     }
     const keys = JSON.parse(keysStr) as string[];
     if (this.useCache) this.keysArrayCache = keys;
     return keys;
   }
 
-  initSync<T extends StorageInterface>(
-    setup: Setup<T>
-  ): Error | undefined {
+  defaultAsyncMode(): boolean {
+    return this.asyncMode;
+  }
+
+  initSync<T extends StorageInterface>(setup: Setup<T>): Error | Ok {
     this.storageName = setup.name ?? defaultStorageName;
     this.useCache = (setup.useCache as boolean) ?? defaultUseCache;
     this.keysArrayName = `__${this.storageName}-keys-array`;
     try {
-      const keysStr = window.sessionStorage.getItem(this.keysArrayName);
+      const keysStr = window.sessionStorage.getItem(
+        this.keysArrayName
+      );
       const isKeysArrayInStorage = keysStr !== null;
       if (!isKeysArrayInStorage) {
         // Create keysArray in storage
@@ -71,7 +79,7 @@ export class SessionStorageInterface extends StorageInterface {
         // Load keysArray to cache
         this.keysArrayCache = keysArray;
       }
-      return undefined;
+      return new Ok();
     } catch (e) {
       return e as Error;
     }
@@ -96,10 +104,8 @@ export class SessionStorageInterface extends StorageInterface {
 
   setItemSync(key: string, value: unknown): void {
     if (key === this.keysArrayName) {
-      const msg =
-        `storage-facade: ${this.interfaceName}:` +
-        `key '${key}' cannot be used.`;
-      throw Error(msg);
+      const err = this.interfaceError(`key '${key}' cannot be used.`);
+      throw err;
     }
     const keysArray = this.useCache
       ? this.keysArrayCache
