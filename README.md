@@ -5,17 +5,17 @@ Supports caching, iteration and default values.
 Written in TypeScript.
 Uses the [storage-facade](https://www.npmjs.com/package/storage-facade)
 library which is provides a single storage API that abstracts over
-the actual storage implementation. 
+the actual storage implementation.
 
 ## Installation
 
 ```sh
-npm install storage-facade@3 storage-facade-sessionstorage
+npm install storage-facade@4 storage-facade-sessionstorage@3
 ```
 
 # Data structure
 
-The following code 
+The following code
 
 ```TypeScript
 import { createStorage } from 'storage-facade';
@@ -36,7 +36,7 @@ const storage2 = createStorage({
 try {
   storage1.pen = { data: [40, 42] };
   storage1.pineApple = 10;
-  
+
   storage2.apple = [1, 2, 3];
   storage2.pen = 'Uh!';
 } catch (e) {
@@ -82,7 +82,7 @@ Default values are not stored in the storage, but in the instance.
 ## Examples
 
 ### Read/Write/Delete
-  
+
 ```TypeScript
 import { createStorage } from 'storage-facade';
 import { SessionStorageInterface } from 'storage-facade-sessionstorage';
@@ -131,7 +131,7 @@ try {
   // Clear storage
   storage.clear();
   console.log(storage.value); // undefined
-  
+
   // Delete storage
   // The array of keys will also be removed
   storage.deleteStorage();
@@ -192,10 +192,10 @@ try {
 
   storage.addDefault({ value: 9, other: 3 });
   storage.addDefault({ value: 1, value2: 2 });
-  
+
   // Since `storage.value = undefined` the default value is used
   console.log(storage.value);  // 1
-  
+
   console.log(storage.value2); // 2
   console.log(storage.other);  // 3
 
@@ -209,22 +209,22 @@ try {
 
   storage.value = null;
   console.log(storage.value); // null
-  
+
   delete storage.value;
   console.log(storage.value); // 1
-  
+
   // getDefault
   console.log(storage.getDefault()); // { value: 1, value2: 2, other: 3 }
-  
+
   // Replace 'default'
   storage.setDefault({ value: 30 });
 
   console.log(storage.value); // 30
   console.log(storage.value2); // undefined
-  
+
   // clearDefault
   storage.clearDefault();
-  
+
   console.log(storage.value); // undefined
   console.log(storage.value2); // undefined
 } catch (e) {
@@ -275,7 +275,7 @@ Instead, use the following approach:
 ## Don't use banned key names
 
 There is a list of key names that cannot be used because they are the same
-as built-in method names: [`open`, `clear`, `deleteStorage`, `size`, `key`,
+as built-in method names: [`clear`, `deleteStorage`, `size`, `key`,
 `getEntries`, `entries`, `addDefault`, `setDefault`, `getDefault`, `clearDefault`].
 
 Use the `keyIsNotBanned` function to check the key if needed.
@@ -306,7 +306,7 @@ Only values of type `string` can be used as keys.
 ## Values for `...Default` methods
 
 Values for [`addDefault`, `setDefault`] methods
-should be of any [structured-cloneable type (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types). 
+should be of any [structured-cloneable type (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm#supported_types).
 
 
 
