@@ -1,4 +1,4 @@
-# 🔥 Storage facade sessionStorage
+# 🔥 Storage facade sessionStorage: SessionStorageInterface
 
 An simple way to store data in sessionStorage.
 Supports caching, iteration and default values.
@@ -10,7 +10,7 @@ the actual storage implementation.
 ## Installation
 
 ```sh
-npm install storage-facade@4 storage-facade-sessionstorage@3
+npm install storage-facade@4 storage-facade-sessionstorage@4
 ```
 
 # Data structure
@@ -50,12 +50,14 @@ will create such keys in sessionStorage:
 
 ![sessionStorage](https://raw.githubusercontent.com/vglinka/storage-facade-sessionstorage/main/assets/sessionstorage.png)
 
-As you can see, each storage is separated from the other by a prefix,
-and each value is wrapped in an object `{ value: ... }`,
-allowing `null` values to be stored. For each storage, there is a variable
-that stores a list of keys and their order. Thus, one of the storages
-can be cleared without affecting the other storage, or other keys from other
-libraries also stored in sessionStorage.
+As you can see, each storage is separated from the other by a prefix.
+For each storage, there is a variable that stores a list of keys and their order.
+Thus, one of the storages can be cleared without affecting the other storage,
+or other keys from other libraries also stored in sessionStorage.
+
+If you don't want prefixes and extra variables with key arrays then use library
+[storage-facade-sessionstoragethin](https://www.npmjs.com/package/storage-facade-sessionstoragethin)
+instead.
 
 # Usage
 
