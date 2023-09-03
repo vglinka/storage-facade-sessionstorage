@@ -59,6 +59,8 @@ If you don't want prefixes and extra variables with key arrays then use library
 [storage-facade-sessionstoragethin](https://www.npmjs.com/package/storage-facade-sessionstoragethin)
 instead.
 
+There are similar libraries for other storages: [indexedDB](https://www.npmjs.com/package/storage-facade-indexeddb), [localStorage](https://www.npmjs.com/package/storage-facade-localstorage), [Map](https://www.npmjs.com/package/storage-facade-map).
+
 # Usage
 
 ## Storage methods
